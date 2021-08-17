@@ -11,7 +11,7 @@ pub struct Screen {
 }
 
 pub fn create_window(name: &str, x:usize, y:usize) -> Screen {
-    //copy past from Rust-SDL2 demo code 
+    //copy past from Rust-SDL2 demo code
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem.window(name, x as u32, y as u32)
