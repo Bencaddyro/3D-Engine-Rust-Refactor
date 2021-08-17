@@ -2,8 +2,11 @@ use crate::lib_surface::*;
 use crate::lib_2d::*;
 use sdl2::pixels::Color;
 
+#[derive(Copy, Clone)]
 pub struct Matrix3D([[f64;4];4]);
+#[derive(Copy, Clone)]
 pub struct Point3D([f64;4]);
+#[derive(Copy, Clone)]
 pub struct Triangle3D(pub [Point3D;3]);
 
 pub fn new_point3d(x: f64, y: f64, z: f64)->Point3D{
@@ -25,9 +28,10 @@ fn convert_3d_2d(p3d: &Point3D, h: f64, xsize: usize, ysize: usize)-> Point2D{
                       [0.0, h/p3d.0[2], 0.0, 0.0],
                       [0.0, 0.0, h/p3d.0[2], 0.0],
                       [0.0, 0.0, 0.0, 1.0]]);
-    let p = multiplication_vector3d(&m, &p3d);
-    let x = p.0[0]+xsize as f64/2.0;
-    let y = p.0[1]+ysize as f64/2.0;
+    let mut p = new_point3d(0.0,0.0,0.0);
+    multiplication_vector3d(&mut p, &m, &p3d);
+    let x = p.0[0] + xsize as f64/2.0;
+    let y = p.0[1] + ysize as f64/2.0;
     Point2D(x as i32, y as i32)
 }
 
@@ -46,15 +50,14 @@ pub fn fill_triangle3d(s: &mut Screen, t: &Triangle3D, color: Color, h: f64){
     fill_triangle2d(s, t2d, color);
 }
 
-fn transform_triangle3d(t: &Triangle3D, m: &Matrix3D)-> Triangle3D{
-    let mut res = Triangle3D([new_point3d(0.0,0.0,0.0),new_point3d(0.0,0.0,0.0),new_point3d(0.0,0.0,0.0)]);
+fn transform_triangle3d(t: &mut Triangle3D, m: &Matrix3D){
+    let tt = (*t).clone();
     for i in 0..3 {
-        res.0[i] = multiplication_vector3d(&m, &t.0[i]);
+        multiplication_vector3d(&mut t.0[i], m, &tt.0[i]);
     }
-    res
 }
 
-pub fn translation_triangle3d(t: &Triangle3D, v: &Point3D)-> Triangle3D{
+pub fn translation_triangle3d(t: &mut Triangle3D, v: &Point3D){
     let m = Matrix3D([[1.0, 0.0, 0.0, v.0[0]],
                       [0.0, 1.0, 0.0, v.0[1]],
                       [0.0, 0.0, 1.0, v.0[2]],
@@ -62,7 +65,7 @@ pub fn translation_triangle3d(t: &Triangle3D, v: &Point3D)-> Triangle3D{
     transform_triangle3d(t, &m)
 }
 
-pub fn rotation_triangle3d(t: &Triangle3D, c: Point3D, x: f64, y: f64, z: f64)-> Triangle3D{
+pub fn rotation_triangle3d(t: &mut Triangle3D, c: &Point3D, x: f64, y: f64, z: f64){
     let x = x.to_radians();
     let y = y.to_radians();
     let z = z.to_radians();
@@ -86,29 +89,33 @@ pub fn rotation_triangle3d(t: &Triangle3D, c: Point3D, x: f64, y: f64, z: f64)->
                        [z.sin(), z.cos(), 0.0, 0.0],
                        [0.0, 0.0, 1.0, 0.0],
                        [0.0, 0.0, 0.0, 1.0]]);
-    let m = multiplication_matrix3d(&mcentre,&mx);
-    let m = multiplication_matrix3d(&m,&my);
-    let m = multiplication_matrix3d(&m,&mz);
-    let m = multiplication_matrix3d(&m,&mreturn);
-    transform_triangle3d(t, &m)
+    let mut m = Matrix3D([[0.0;4];4]);
+    multiplication_matrix3d(&mut m, &mcentre, &mx);
+    let m_copy = m.clone();
+    multiplication_matrix3d(&mut m, &m_copy, &mx);
+    let m_copy = m.clone();
+    multiplication_matrix3d(&mut m, &m_copy, &my);
+    let m_copy = m.clone();
+    multiplication_matrix3d(&mut m, &m_copy, &mz);
+    let m_copy = m.clone();
+    multiplication_matrix3d(&mut m, &m_copy, &mreturn);
+    transform_triangle3d(t, &m);
 }
 
-fn multiplication_vector3d(m: &Matrix3D, v: &Point3D)-> Point3D{
-    let mut res = Point3D([0.0;4]);
+fn multiplication_vector3d(v1: &mut Point3D, m: &Matrix3D, v2: &Point3D){//v1 = m * v2
+    v1.0 = [0.0;4];
     for i in 0..4 {
     for j in 0..4 {
-        res.0[i] = res.0[i] + m.0[i][j] * v.0[j]
+        v1.0[i] = v1.0[i] + m.0[i][j] * v2.0[j]
     }}
-    res
 }
 
-fn multiplication_matrix3d(m1: &Matrix3D, m2: &Matrix3D)-> Matrix3D{
-    let mut res = Matrix3D([[0.0;4];4]);
+fn multiplication_matrix3d(m1: &mut Matrix3D, m2: &Matrix3D, m3: &Matrix3D){//m1 = m2 * m3
+    m1.0 = [[0.0;4];4];
     for i in 0..4 {
     for j in 0..4 {
     for k in 0..4 {
-        res.0[i][j] = res.0[i][j] + m1.0[i][k] * m2.0[k][j];
+        m1.0[i][j] = m1.0[i][j] + m2.0[i][k] * m3.0[k][j];
     }}}
-    res
 }
 
