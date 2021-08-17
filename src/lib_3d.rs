@@ -3,7 +3,7 @@ use crate::lib_2d::*;
 use sdl2::pixels::Color;
 
 #[derive(Copy, Clone)]
-pub struct Matrix3D([[f64;4];4]);
+pub struct Matrix3D(pub [[f64;4];4]);
 #[derive(Copy, Clone)]
 pub struct Point3D([f64;4]);
 #[derive(Copy, Clone)]
@@ -102,7 +102,7 @@ pub fn rotation_triangle3d(t: &mut Triangle3D, c: &Point3D, x: f64, y: f64, z: f
     transform_triangle3d(t, &m);
 }
 
-fn multiplication_vector3d(v1: &mut Point3D, m: &Matrix3D, v2: &Point3D){//v1 = m * v2
+pub fn multiplication_vector3d(v1: &mut Point3D, m: &Matrix3D, v2: &Point3D){//v1 = m * v2
     v1.0 = [0.0;4];
     for i in 0..4 {
     for j in 0..4 {
