@@ -16,10 +16,12 @@ pub struct Plan3D{//a*x+b*y+c*z=d
     pub d: f64,
 }
 
+#[allow(dead_code)]
 pub fn new_point3d(x: f64, y: f64, z: f64)->Point3D{
     Point3D([x, y, z, 1.0])
 }
 
+#[allow(dead_code)]
 pub fn new_vector3d(x: f64, y: f64, z: f64)->Point3D{
     Point3D([x, y, z, 0.0])
 }

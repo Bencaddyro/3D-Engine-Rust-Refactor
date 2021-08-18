@@ -59,7 +59,7 @@ fn bresenham(s: &Screen, m: &Point2D, n: &Point2D, xmin: &mut [usize], xmax: &mu
 }
 
 fn circumvent<T: Ord>(min: T, max: T, val: T)-> T{
-    if val < min { return min};
+    if val < min {return min};
     if val > max {return max};
     val
 }
