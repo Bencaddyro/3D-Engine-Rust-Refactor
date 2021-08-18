@@ -7,7 +7,7 @@ pub struct Screen {
     canvas: Canvas<Window>,
     pub x: usize,
     pub y: usize,
-    //z: f64,// tab de z index
+    z_index: Vec<Vec<f64>>,
 }
 
 pub fn create_window(name: &str, x:usize, y:usize) -> Screen {
@@ -19,7 +19,8 @@ pub fn create_window(name: &str, x:usize, y:usize) -> Screen {
         .build()
         .unwrap();
     let canvas = window.into_canvas().build().unwrap();
-    Screen{canvas, x, y}
+    let z_index = vec![vec![f64::MAX;x];y];
+    Screen{canvas, x, y, z_index}
 }
 
 pub fn update_window(s: &mut Screen){
@@ -29,13 +30,15 @@ pub fn update_window(s: &mut Screen){
 pub fn clear_window(s: &mut Screen, c: Color){
     s.canvas.set_draw_color(c);
     s.canvas.clear();
-    //need reset for (soon)TM z-index
+    s.z_index = vec![vec![f64::MAX;s.y];s.x];
 }
 
-pub fn draw_pixel(s: &mut Screen, x: usize, y: usize, _z: f64, c: Color){
-    // (x,y) already in correct range with fill_triangle2d
+pub fn draw_pixel(s: &mut Screen, x: usize, y: usize, z: f64, c: Color){
+    // (x,y,z) already in correct range with fill_triangle2d
     //println!("draw_pixel x={},y={}",x,y);
+    if s.z_index[x][y] < z { return (); } //abort rendering if something ahead
     s.canvas.set_draw_color(c);
+    s.z_index[x][y] = z;
     let result = s.canvas.draw_point(Point::new(x as i32, y as i32));
     match result {
         Ok(_o) => (),

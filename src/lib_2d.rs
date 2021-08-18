@@ -1,4 +1,5 @@
 use crate::lib_surface::*;
+use crate::lib_3d::*;
 use std::cmp::min;
 use std::cmp::max;
 use std::convert::TryFrom;
@@ -63,8 +64,8 @@ fn circumvent<T: Ord>(min: T, max: T, val: T)-> T{
     val
 }
 
-pub fn fill_triangle2d(s: &mut Screen, triangle: Triangle2D, c: Color){
-    // Temporary array to store triangle' shell, maybe to move in futur for memomry optimization
+pub fn fill_triangle2d(s: &mut Screen, triangle: Triangle2D, plan: Plan3D, h: f64, color: Color){
+    // Temporary array to store triangle' shell, maybe to move in futur for memory optimization
     let mut xmin = vec![s.x-1; s.y];
     let mut xmax = vec![0; s.y];
 
@@ -72,19 +73,29 @@ pub fn fill_triangle2d(s: &mut Screen, triangle: Triangle2D, c: Color){
     let ymax = max(triangle.0.1,max(triangle.1.1,triangle.2.1));
     //print!("ymin {}, ymax {} => ", ymin, ymax);
     if ymin > s.y as i32 || ymax < 0 { return () } //abort rendering as triangle is not on screen
-    let ymin = circumvent(0, s.y as i32, ymin) as usize;
-    let ymax = circumvent(0, s.y as i32, ymax) as usize;
+    let ymin = circumvent(0, (s.y-1) as i32, ymin) as usize;
+    let ymax = circumvent(0, (s.y-1) as i32, ymax) as usize;
     //print!("ymin {}, ymax {}\n", ymin, ymax);
     // First step Bresenham algorithm on triangle's edge to find triangle's shell
     bresenham(s, &triangle.0, &triangle.1, &mut xmin, &mut xmax);
     bresenham(s, &triangle.1, &triangle.2, &mut xmin, &mut xmax);
     bresenham(s, &triangle.2, &triangle.0, &mut xmin, &mut xmax);
     
+    let Plan3D{a, b, c, d} = plan;
+    let xsize = s.x as f64 / 2.0;
+    let ysize = s.y as f64 / 2.0;    
+    
+    
     //fill shell line by line (y) between min and max x
     for i in ymin..ymax{
         for j in xmin[i]..xmax[i]{
-            draw_pixel(s, j, i, 0.0, c);
+        
+            let z = d / ( c + a * (j as f64-xsize) / h + b * (i as f64-ysize) / h );
+            draw_pixel(s, j, i, z, color);
         }
     }
 }
+
+
+
 

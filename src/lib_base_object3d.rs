@@ -55,3 +55,71 @@ pub fn cuboid(lx: f64, ly: f64, lz: f64)-> Object3D{
     Object3D{t_list}
 }
 
+
+pub fn cylinder(radius: f64, lx: f64, nlong: usize)-> Object3D{
+    let h = lx/2.0;
+    let x0 = new_point3d(h,0.0,0.0);
+    let x1 = new_point3d(-h,0.0,0.0);
+    let mut t_list = Vec::new();
+    
+    let mut x0i = new_point3d(h,radius*(0_f64.cos()),radius*(0_f64.sin()));
+    let mut x1i = new_point3d(-h,radius*(0_f64.cos()),radius*(0_f64.sin()));
+    for i in 1..nlong{
+        let x0ii = new_point3d(h,radius*((i as f64/nlong as f64*360.0).cos()),radius*((i as f64/nlong as f64*360.0).sin()));
+        let x1ii = new_point3d(-h,radius*((i as f64/nlong as f64*360.0).cos()),radius*((i as f64/nlong as f64*360.0).sin()));
+        
+        let t0 = Triangle3D(x0, x0i, x0ii);
+        let t1 = Triangle3D(x1, x1i, x1ii);
+        t_list.push(CTriangle3D{t:t0, c:Color::RGB(255,000,000)});
+        t_list.push(CTriangle3D{t:t1, c:Color::RGB(100,000,000)});
+        
+        let t0 = Triangle3D(x0i, x0ii, x1i);
+        let t1 = Triangle3D(x1i, x1ii, x0ii);
+        t_list.push(CTriangle3D{t:t0, c:Color::RGB(255,000,000)});
+        t_list.push(CTriangle3D{t:t1, c:Color::RGB(100,000,000)});
+        
+        x0i = x0ii;
+        x1i = x1ii;
+        
+        
+    }
+    Object3D{t_list}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -9,12 +9,35 @@ pub struct Point3D([f64;4]);
 #[derive(Copy, Clone)]
 pub struct Triangle3D(pub Point3D, pub Point3D, pub Point3D);
 
+pub struct Plan3D{//a*x+b*y+c*z=d
+    pub a: f64,
+    pub b: f64,
+    pub c: f64,
+    pub d: f64,
+}
+
 pub fn new_point3d(x: f64, y: f64, z: f64)->Point3D{
     Point3D([x, y, z, 1.0])
 }
 
 pub fn new_vector3d(x: f64, y: f64, z: f64)->Point3D{
     Point3D([x, y, z, 0.0])
+}
+
+fn get_plan(t: &Triangle3D)-> Plan3D{
+    let acx = t.2.0[0]-t.0.0[0];
+    let acy = t.2.0[1]-t.0.0[1];
+    let acz = t.2.0[2]-t.0.0[2];
+    let bcx = t.2.0[0]-t.1.0[0];
+    let bcy = t.2.0[1]-t.1.0[1];
+    let bcz = t.2.0[2]-t.1.0[2];
+    
+    let a = acy * bcz - acz * bcy;
+    let b = acz * bcx - acx * bcz;
+    let c = acx * bcy - acy * bcx;
+    let d = a * t.2.0[0] + b * t.2.0[1] + c * t.2.0[2];
+    
+    Plan3D{a, b, c, d}
 }
 
 #[allow(dead_code)]
@@ -45,9 +68,10 @@ pub fn fill_triangle3d(s: &mut Screen, t: &Triangle3D, color: Color, h: f64){
     let b = convert_3d_2d(&t.1, h, s.x, s.y);
     let c = convert_3d_2d(&t.2, h, s.x, s.y);
     let t2d = Triangle2D(a,b,c);
+    let plan = get_plan(t);
+    //TODO move plan creation elsewhere for opti ?
     
-    //TODO find normal vector to triangle plane, allowing z-index computation
-    fill_triangle2d(s, t2d, color);
+    fill_triangle2d(s, t2d, plan, h, color);
 }
 
 fn transform_triangle3d(t: &mut Triangle3D, m: &Matrix3D){
