@@ -7,7 +7,7 @@ pub struct Matrix3D(pub [[f64;4];4]);
 #[derive(Copy, Clone)]
 pub struct Point3D([f64;4]);
 #[derive(Copy, Clone)]
-pub struct Triangle3D(pub [Point3D;3]);
+pub struct Triangle3D(pub Point3D, pub Point3D, pub Point3D);
 
 pub fn new_point3d(x: f64, y: f64, z: f64)->Point3D{
     Point3D([x, y, z, 1.0])
@@ -18,8 +18,8 @@ pub fn new_vector3d(x: f64, y: f64, z: f64)->Point3D{
 }
 
 #[allow(dead_code)]
-fn print_triangle3d(t: &Triangle3D){
-    println!("Triangle ({},{},{})-({},{},{})-({},{},{})",t.0[0].0[0],t.0[0].0[1],t.0[0].0[2],t.0[1].0[0],t.0[1].0[1],t.0[1].0[2],t.0[2].0[0],t.0[2].0[1],t.0[2].0[2],);
+pub fn print_triangle3d(t: &Triangle3D){
+    println!("Triangle ({},{},{})-({},{},{})-({},{},{})",t.0.0[0],t.0.0[1],t.0.0[2],t.1.0[0],t.1.0[1],t.1.0[2],t.2.0[0],t.2.0[1],t.2.0[2],);
 }
 
 fn convert_3d_2d(p3d: &Point3D, h: f64, xsize: usize, ysize: usize)-> Point2D{
@@ -38,12 +38,12 @@ fn convert_3d_2d(p3d: &Point3D, h: f64, xsize: usize, ysize: usize)-> Point2D{
 pub fn fill_triangle3d(s: &mut Screen, t: &Triangle3D, color: Color, h: f64){
     //TODO check if t is in render space aka in front of camera, otherwise drop render -> z > h
     //print_triangle3d(t);
-    if t.0[0].0[2] < 0.000_000_1 || t.0[1].0[2] < 0.000_000_1 || t.0[2].0[2] < 0.000_000_1 { return () } //if any point of t is behind abort rendering, 0.000_000_1 instead of 0 to bypass small float rounding problem
+    if t.0.0[2] < 0.000_000_1 || t.1.0[2] < 0.000_000_1 || t.2.0[2] < 0.000_000_1 { return () } //if any point of t is behind abort rendering, 0.000_000_1 instead of 0 to bypass small float rounding problem
     
     // orthogonal projection on 2d plane
-    let a = convert_3d_2d(&t.0[0], h, s.x, s.y);
-    let b = convert_3d_2d(&t.0[1], h, s.x, s.y);
-    let c = convert_3d_2d(&t.0[2], h, s.x, s.y);
+    let a = convert_3d_2d(&t.0, h, s.x, s.y);
+    let b = convert_3d_2d(&t.1, h, s.x, s.y);
+    let c = convert_3d_2d(&t.2, h, s.x, s.y);
     let t2d = Triangle2D(a,b,c);
     
     //TODO find normal vector to triangle plane, allowing z-index computation
@@ -52,9 +52,9 @@ pub fn fill_triangle3d(s: &mut Screen, t: &Triangle3D, color: Color, h: f64){
 
 fn transform_triangle3d(t: &mut Triangle3D, m: &Matrix3D){
     let tt = (*t).clone();
-    for i in 0..3 {
-        multiplication_vector3d(&mut t.0[i], m, &tt.0[i]);
-    }
+    multiplication_vector3d(&mut t.0, m, &tt.0);
+    multiplication_vector3d(&mut t.1, m, &tt.1);
+    multiplication_vector3d(&mut t.2, m, &tt.2);
 }
 
 pub fn translation_triangle3d(t: &mut Triangle3D, v: &Point3D){
